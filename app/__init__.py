@@ -33,8 +33,12 @@ def create_app(config_class="config.DevelopmentConfig"):
 
 def register_blueprints(app):
     from app.users import users_bp
+    from app.journals import journals_bp
+    from app.categories import category_bp
 
     app.register_blueprint(users_bp, url_prefix="/api/auth")
+    app.register_blueprint(journals_bp, url_prefix="/api/journal-entries")
+    app.register_blueprint(category_bp, url_prefix="/api/categories")
 
     return
 
@@ -80,7 +84,7 @@ def user_identity_lookup(user):
 
 @jwt_manager.user_lookup_loader
 def user_lookup_callback(_jwt_header, jwt_data):
-    from models import User  # type: ignore
+    from app.models import User  # type: ignore
 
     identity = jwt_data["sub"]
     user_id = identity["_id"]
