@@ -1,14 +1,15 @@
 import re
 from datetime import datetime, timedelta
 
-from flask import request, current_app, jsonify
+from flask import request, current_app, jsonify, url_for, render_template
 from flask_jwt_extended import jwt_required, current_user, decode_token
 
 from app import db
 from app.users import users_bp
 from app.models import User
 from utils.hash_password import hash_password, check_password
-from utils.jwt import generate_access_token
+from utils.jwt import generate_access_token, generate_token
+from utils.mailer import send_mail
 
 
 @users_bp.route("/register", methods=["POST"])
@@ -27,7 +28,19 @@ def register():
                 f"[ 400_error ] user registration failed; error: {response}"
             )
             return jsonify({"error": response, "success": False}), 400
-
+        
+        # send verification email
+        token = generate_token({"_id": user.id})
+        url = url_for(endpoint="users_bp.verify", _external=True, token=token)
+        subject = "Email Verification"
+        msg = f"""Hello { user.username }\n
+        You account has been created successfully.\n
+        Follow this link to verify yur account: {url}\n\n
+        Your Friends.\n
+        MyJournal Team"""
+        html = render_template("verification_email.html", username=user.username, link=url)
+        send_mail(subject, [user.email], msg, html)
+        
         current_app.logger.info(
             f"[ 201_created ] user registration successful; user: {request_data.get('username')}"
         )
@@ -74,7 +87,6 @@ def login():
             )
             return jsonify({"error": "Wrong password", "success": False}), 401
         access_token, refresh_token, resp = generate_access_token(user.id)
-        print(resp)
 
         user.last_login = datetime.now()
         db.session.add(user)
@@ -102,7 +114,7 @@ def login():
         )
 
 
-@users_bp.route("/verify/<token>", methods=["POST"])
+@users_bp.route("/verify/<token>", methods=["POST"], endpoint="verify")
 def verify(token):
     """route to verify user"""
     try:
@@ -113,6 +125,11 @@ def verify(token):
         if not user:
             current_app.logger.error(f"[ 404_error ] verify failed; User not found")
             return jsonify({"error": "User not registered", "success": False}), 404
+        user.status = "active"
+        user.updated_at = datetime.now()
+        db.session.add(user)
+        db.session.commit()
+        
         current_app.logger.info(
             f"[ 200_ok ] account verification successfull; username: {user.username}"
         )
