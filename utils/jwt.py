@@ -34,11 +34,11 @@ def refresh_token():
     return new_access_token
 
 
-def generate_token(payload, ttl=300):
+def generate_token(payload):
     """generate a generic jwt token"""
     try:
         token = create_access_token(
-            identity=payload, expires_delta=timedelta(seconds=ttl)
+            identity=payload, expires_delta=timedelta(hours=24)
         )
         return token, "success"
     except Exception as e:
