@@ -73,7 +73,7 @@ def update_journal_entry():
                     "data": entry,
                 }
             ),
-            201,
+            200,
         )
     except Exception as e:
         current_app.logger.exception(
@@ -99,6 +99,7 @@ def get_journal_entry():
             data, response = JournalEntry().get_journal_entry(current_user.id, entry_id)
         else:
             data, response = JournalEntry().get_journal_entries(current_user.id)
+        categories = Category().get_categories(current_user.id)
         if not data:
             current_app.logger.error(
                 f"[ 404_error ] fetching journal entries ; error: {response}"
@@ -113,10 +114,11 @@ def get_journal_entry():
                 {
                     "msg": "Request successful",
                     "success": True,
-                    "data": data,
+                    "entries": data,
+                    "categories": categories
                 }
             ),
-            201,
+            200,
         )
     except Exception as e:
         current_app.logger.exception(
@@ -156,7 +158,7 @@ def delete_journal_entry():
                     "data": entry,
                 }
             ),
-            201,
+            200,
         )
     except Exception as e:
         current_app.logger.exception(
