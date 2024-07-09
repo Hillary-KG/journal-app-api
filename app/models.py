@@ -50,7 +50,7 @@ class User(UserMixin, db.Model):
         if not username:
             raise AssertionError("No username provided")
         if User.query.filter(User.username == username).first():
-            raise AssertionError("phone number is already in use")
+            raise AssertionError("username is taken")
         if len(username) < 5 or len(username) > 20:
             raise AssertionError("Username must be between 5 and 20 characters")
         return username

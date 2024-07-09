@@ -73,7 +73,7 @@ def update_category():
                     "data": category,
                 }
             ),
-            201,
+            200,
         )
     except Exception as e:
         current_app.logger.exception(
@@ -116,7 +116,7 @@ def get_category():
                     "data": data,
                 }
             ),
-            201,
+            200,
         )
     except Exception as e:
         current_app.logger.exception(
@@ -156,7 +156,7 @@ def delete_category():
                     "data": category,
                 }
             ),
-            201,
+            200,
         )
     except Exception as e:
         current_app.logger.exception(
